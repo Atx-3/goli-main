@@ -1374,16 +1374,29 @@
             playerName = input.value.trim() || 'Player';
 
             document.getElementById('score-label').textContent = playerName + "'s Score";
-            document.getElementById('loading-player-name').textContent = 'Get Ready, ' + playerName + '!';
 
             document.getElementById('welcome-phase').hidden = true;
             document.getElementById('loading-phase').hidden = false;
 
-            for (let i = 0; i < CONFIG.DISC_COUNT; i++) {
-                createDisc();
-            }
-            animate();
-            initMediaPipe();
+            document.getElementById('loading-player-name').textContent = 'Connecting NASA...';
+            document.getElementById('loader-text').textContent = '🛰️ Establishing satellite link...';
+            progressBar.style.width = '10%';
+
+            setTimeout(() => {
+                document.getElementById('loading-player-name').textContent = 'Jai Elon Musk 🚀';
+                document.getElementById('loader-text').textContent = '🧑‍🚀 SpaceX approved!';
+                progressBar.style.width = '20%';
+
+                setTimeout(() => {
+                    document.getElementById('loading-player-name').textContent = 'Get Ready, ' + playerName + '!';
+
+                    for (let i = 0; i < CONFIG.DISC_COUNT; i++) {
+                        createDisc();
+                    }
+                    animate();
+                    initMediaPipe();
+                }, 1000);
+            }, 1000);
         }
 
         document.getElementById('player-name-input').addEventListener('keydown', (e) => {
