@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gesture Strike AR</title>
+    <title>game made by aakansh tiwari</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- MediaPipe Hands pinned version for stability -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
@@ -123,6 +123,27 @@
             100% {
                 transform: rotate(360deg);
             }
+        }
+
+        .game-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            z-index: 50;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .game-footer strong {
+            color: #e94560;
         }
     </style>
 </head>
@@ -482,6 +503,10 @@
         window.addEventListener('resize', handleResize);
         handleResize(); // Initial call
     </script>
+
+    <footer class="game-footer">
+        Made by <strong>Aakansh Tiwari</strong> &nbsp;|&nbsp; Class 8th - B, Science Project
+    </footer>
 </body>
 
 </html>

@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Gesture Shooting Game</title>
+    <title>game made by aakansh tiwari</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,9 +19,11 @@
         body {
             overflow: hidden;
             background: #000;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Rajdhani', sans-serif;
+            cursor: none;
         }
 
+        /* Camera Feed */
         #camera-feed {
             position: fixed;
             top: 0;
@@ -26,7 +32,7 @@
             height: 100vh;
             object-fit: cover;
             transform: scaleX(-1);
-            z-index: 1;
+            z-index: 0;
         }
 
         #landmark-canvas {
@@ -35,10 +41,9 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            object-fit: cover;
-            transform: scaleX(-1);
-            z-index: 2;
+            z-index: 1;
             pointer-events: none;
+            transform: scaleX(-1);
         }
 
         #game-canvas {
@@ -47,46 +52,168 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 3;
+            z-index: 2;
             pointer-events: none;
         }
 
+        /* ========== LOADING SCREEN ========== */
         #loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            inset: 0;
+            background: linear-gradient(135deg, #0a0a1a 0%, #0d1b2a 40%, #1b2838 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
-            transition: opacity 0.5s ease;
+            z-index: 200;
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
         #loading-overlay.hidden {
             opacity: 0;
+            transform: scale(1.1);
             pointer-events: none;
         }
 
-        .loader-title {
-            color: #e94560;
-            font-size: 2.5rem;
-            font-weight: bold;
+        .loader-icon {
+            width: 120px;
+            height: 120px;
+            position: relative;
             margin-bottom: 2rem;
-            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
         }
 
-        .loader-spinner {
-            width: 80px;
-            height: 80px;
-            border: 4px solid rgba(233, 69, 96, 0.2);
-            border-top-color: #e94560;
+        .loader-icon::before,
+        .loader-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            border: 3px solid transparent;
+        }
+
+        .loader-icon::before {
+            border-top-color: #ff2d55;
+            border-right-color: #ff2d55;
+            animation: spin 1.2s linear infinite;
+        }
+
+        .loader-icon::after {
+            inset: 12px;
+            border-bottom-color: #00e5ff;
+            border-left-color: #00e5ff;
+            animation: spin 0.8s linear infinite reverse;
+        }
+
+        .loader-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loader-title {
+            font-family: 'Orbitron', monospace;
+            color: #fff;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(255, 45, 85, 0.6), 0 0 60px rgba(255, 45, 85, 0.3);
+        }
+
+        .loader-subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
             margin-bottom: 2rem;
+        }
+
+        .loader-text {
+            color: #00e5ff;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .loader-progress {
+            width: 320px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loader-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff2d55, #ff6b35, #ff2d55);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s ease;
+            animation: shimmer 2s linear infinite;
+            box-shadow: 0 0 12px rgba(255, 45, 85, 0.6);
+        }
+
+        /* Welcome Form */
+        .welcome-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-top: 1.5rem;
+        }
+
+        .welcome-form input {
+            width: 280px;
+            padding: 14px 20px;
+            border: 2px solid rgba(255, 45, 85, 0.4);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .welcome-form input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .welcome-form input:focus {
+            border-color: #ff2d55;
+            box-shadow: 0 0 20px rgba(255, 45, 85, 0.3);
+        }
+
+        .welcome-form button {
+            padding: 14px 48px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff2d55, #ff6b35);
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .welcome-form button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 45, 85, 0.5);
+        }
+
+        .welcome-form button:active {
+            transform: scale(0.98);
         }
 
         @keyframes spin {
@@ -95,72 +222,367 @@
             }
         }
 
-        .loader-text {
-            color: #fff;
-            font-size: 1.2rem;
-            opacity: 0.8;
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.15);
+            }
         }
 
-        .loader-progress {
-            width: 300px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* ========== HUD ========== */
+        .hud {
+            position: fixed;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Top Bar */
+        .hud-top {
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 20px;
+        }
+
+        .hud-panel {
+            background: rgba(0, 0, 0, 0.55);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            backdrop-filter: blur(16px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 14px 20px;
+            color: #fff;
+            min-width: 140px;
+        }
+
+        .hud-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 4px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .hud-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .hud-value.score-color {
+            color: #00e5ff;
+        }
+
+        .hud-value.high-color {
+            color: #ffd700;
+        }
+
+        .hud-value.combo-color {
+            color: #ff2d55;
+        }
+
+        .hud-panel-right {
+            text-align: right;
+        }
+
+        .combo-bar-initial {
+            width: 0%;
+        }
+
+        /* Center panel */
+        .hud-center {
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hud-center .hud-panel {
+            text-align: center;
+            min-width: 180px;
+        }
+
+        /* Status bar */
+        .hud-status {
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hud-status .hud-panel {
+            text-align: center;
+            padding: 10px 28px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            min-width: auto;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 1.2s ease-in-out infinite;
+        }
+
+        .status-dot.active {
+            background: #4ade80;
+            box-shadow: 0 0 8px #4ade80;
+        }
+
+        .status-dot.inactive {
+            background: #f87171;
+            box-shadow: 0 0 8px #f87171;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* ========== NEW RECORD BANNER ========== */
+        #record-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 100;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+        }
+
+        #record-banner.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .record-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.4);
+            letter-spacing: 8px;
+            animation: recordPulse 0.6s ease-in-out infinite alternate;
+        }
+
+        .record-sub {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: rgba(255, 215, 0, 0.7);
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
+
+        @keyframes recordPulse {
+            from {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+
+            to {
+                transform: scale(1.05);
+                filter: brightness(1.3);
+            }
+        }
+
+        /* ========== SCORE POPUP ========== */
+        .score-popup {
+            position: fixed;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.6rem;
+            pointer-events: none;
+            z-index: 60;
+            animation: scoreFloat 1s ease-out forwards;
+        }
+
+        @keyframes scoreFloat {
+            0% {
+                transform: translateY(0) scale(1.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-80px) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        /* ========== COMBO BAR ========== */
+        .combo-bar-wrap {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 3px;
-            margin-top: 1rem;
+            margin-top: 8px;
             overflow: hidden;
         }
 
-        .loader-progress-bar {
+        .combo-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            background: linear-gradient(90deg, #ff2d55, #ff6b35);
             border-radius: 3px;
-            width: 0%;
             transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(255, 45, 85, 0.5);
         }
 
-        #score-display {
+        /* ========== SCREEN FLASH ========== */
+        #screen-flash {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            z-index: 10;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            inset: 0;
+            pointer-events: none;
+            z-index: 45;
+            opacity: 0;
+            transition: opacity 0.05s ease-out;
         }
 
-        #score-display span {
-            color: #e94560;
-        }
-
-        #debug-info {
+        /* ========== FOOTER ========== */
+        .game-footer {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.6);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.8rem;
-            z-index: 10;
+            z-index: 50;
+            letter-spacing: 1px;
+        }
+
+        .game-footer strong {
+            color: #ff2d55;
+            font-weight: 700;
+        }
+
+        .game-footer .sep {
+            color: rgba(255, 255, 255, 0.25);
+            margin: 0 10px;
         }
     </style>
 </head>
 
 <body>
+    <!-- Welcome & Loading Screen -->
     <div id="loading-overlay">
-        <div class="loader-title">🎯 AR SHOOTER</div>
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Loading hand tracking model...</div>
-        <div class="loader-progress">
-            <div class="loader-progress-bar" id="progress-bar"></div>
+        <!-- Welcome Phase -->
+        <div id="welcome-phase">
+            <div class="loader-icon">
+                <div class="loader-crosshair">🎯</div>
+            </div>
+            <div class="loader-title">WELCOME to my Game</div>
+            <div class="loader-subtitle">A science project by Aakansh Tiwari</div>
+            <div class="welcome-form">
+                <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="20"
+                    autocomplete="off">
+                <button id="start-btn" onclick="startGame()">Start Game</button>
+            </div>
+        </div>
+        <!-- Loading Phase (hidden initially) -->
+        <div id="loading-phase" hidden>
+            <div class="loader-icon">
+                <div class="loader-crosshair">🎯</div>
+            </div>
+            <div class="loader-title" id="loading-player-name">Loading...</div>
+            <div class="loader-text" id="loader-text">Initializing...</div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar" id="progress-bar"></div>
+            </div>
         </div>
     </div>
 
+    <!-- Camera & Canvas -->
     <video id="camera-feed" autoplay muted></video>
     <canvas id="landmark-canvas"></canvas>
     <canvas id="game-canvas"></canvas>
 
-    <div id="score-display">Score: <span id="score">0</span></div>
-    <div id="debug-info">Gesture: <span id="gesture-status">Waiting...</span></div>
+    <!-- Screen Flash -->
+    <div id="screen-flash"></div>
 
+    <!-- HUD Top -->
+    <div class="hud hud-top">
+        <div class="hud-panel">
+            <div class="hud-label" id="score-label">Score</div>
+            <div class="hud-value score-color" id="score-display">0000</div>
+        </div>
+        <div class="hud-panel hud-panel-right">
+            <div class="hud-label">Best</div>
+            <div class="hud-value high-color" id="high-score-display">0000</div>
+        </div>
+    </div>
+
+    <!-- HUD Center: Combo -->
+    <div class="hud hud-center">
+        <div class="hud-panel">
+            <div class="hud-label">Combo</div>
+            <div class="hud-value combo-color" id="combo-display">x1</div>
+            <div class="combo-bar-wrap">
+                <div class="combo-bar-fill combo-bar-initial" id="combo-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD Status -->
+    <div class="hud hud-status">
+        <div class="hud-panel">
+            <span class="status-dot inactive" id="status-dot"></span>
+            <span id="gesture-status">Waiting for hand...</span>
+        </div>
+    </div>
+
+    <!-- New Record Banner -->
+    <div id="record-banner">
+        <div class="record-text">🏆 NEW RECORD!</div>
+        <div class="record-sub" id="record-score-text"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+        Made by <strong>Aakansh Tiwari</strong>
+        <span class="sep">|</span>
+        Class 8th - B, Science Project
+    </footer>
+
+    <!-- Libraries -->
     <script src="https://unpkg.com/three@0.152.0/build/three.min.js"></script>
     <script src="https://unpkg.com/@mediapipe/hands@0.4.1646424915/hands.js"></script>
     <script src="https://unpkg.com/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
@@ -172,47 +594,64 @@
         // ============================================
         const CONFIG = {
             DISC_COUNT: 4,
-            DISC_SPEED: 0.015,
+            DISC_SPEED: 0.005,
             DISC_SIZE: 0.12,
             AIM_ASSIST_RADIUS: 0.15,
-            DETECTION_INTERVAL: 66, // ~15 FPS for hand detection
-            LASER_COLOR: 0xff0000,
-            CROSSHAIR_COLOR: 0x00ff00,
-            HIT_COLOR: 0x00ff00,
-            MISS_COLOR: 0xff0000
+            DETECTION_INTERVAL: 66,
+            LASER_COLOR: 0xff2d55,
+            CROSSHAIR_COLOR: 0x00e5ff,
+            HIT_COLOR: 0x4ade80,
+            MISS_COLOR: 0xff2d55,
+            COMBO_TIMEOUT: 3000, // ms to keep combo alive
+            SCORE_PER_HIT: 100
         };
 
         // ============================================
         // GAME STATE
         // ============================================
         let score = 0;
+        let highScore = parseInt(localStorage.getItem('arShooterHighScore') || '0');
+        let combo = 0;
+        let comboTimer = null;
+        let comboBarPercent = 0;
         let handsReady = false;
-        let lastDetectionTime = 0;
         let lastHandData = null;
         let isPistolGesture = false;
-        let wasTriggerPulled = false;
         let aimPosition = { x: 0, y: 0 };
         let assistedAimPosition = { x: 0, y: 0 };
+        let newRecordShown = false;
+        let lastAutoFireTime = 0;
+        const AUTO_FIRE_COOLDOWN = 300; // ms between auto-kills
 
         // ============================================
         // DOM ELEMENTS
         // ============================================
         const loadingOverlay = document.getElementById('loading-overlay');
         const progressBar = document.getElementById('progress-bar');
-        const loaderText = document.querySelector('.loader-text');
+        const loaderText = document.getElementById('loader-text');
         const cameraFeed = document.getElementById('camera-feed');
         const gameCanvas = document.getElementById('game-canvas');
         const landmarkCanvas = document.getElementById('landmark-canvas');
         const landmarkCtx = landmarkCanvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
+        const scoreDisplay = document.getElementById('score-display');
+        const highScoreDisplay = document.getElementById('high-score-display');
+        const comboDisplay = document.getElementById('combo-display');
+        const comboBar = document.getElementById('combo-bar');
         const gestureStatus = document.getElementById('gesture-status');
+        const statusDot = document.getElementById('status-dot');
+        const screenFlash = document.getElementById('screen-flash');
+        const recordBanner = document.getElementById('record-banner');
+        const recordScoreText = document.getElementById('record-score-text');
+
+        // Init high score display
+        highScoreDisplay.textContent = highScore.toString().padStart(4, '0');
 
         // ============================================
         // THREE.JS SETUP
         // ============================================
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 1;
+        const camera3d = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera3d.position.z = 1;
 
         const renderer = new THREE.WebGLRenderer({
             canvas: gameCanvas,
@@ -223,11 +662,14 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
         // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xff6b6b, 1, 100);
+        const pointLight = new THREE.PointLight(0xff6b6b, 1.2, 100);
         pointLight.position.set(0, 0, 2);
         scene.add(pointLight);
+        const pointLight2 = new THREE.PointLight(0x00e5ff, 0.6, 100);
+        pointLight2.position.set(-2, 2, 3);
+        scene.add(pointLight2);
 
         // ============================================
         // GAME OBJECTS
@@ -236,15 +678,6 @@
         const textEffects = [];
         const particles = [];
 
-        // Disc material
-        const discMaterial = new THREE.MeshPhongMaterial({
-            color: 0xe94560,
-            emissive: 0x441122,
-            shininess: 100,
-            side: THREE.DoubleSide
-        });
-
-        // Create disc geometry
         const discGeometry = new THREE.TorusGeometry(CONFIG.DISC_SIZE, CONFIG.DISC_SIZE * 0.3, 8, 24);
 
         // Laser line
@@ -271,16 +704,25 @@
         const crosshairRing = new THREE.Mesh(crosshairRingGeometry, crosshairMaterial);
         crosshairGroup.add(crosshairRing);
 
-        // Crosshair dot
         const dotGeometry = new THREE.CircleGeometry(0.008, 16);
         const dotMesh = new THREE.Mesh(dotGeometry, crosshairMaterial);
         crosshairGroup.add(dotMesh);
+
+        // Inner ring
+        const innerRingGeo = new THREE.RingGeometry(0.015, 0.02, 32);
+        const innerRingMat = new THREE.MeshBasicMaterial({
+            color: CONFIG.CROSSHAIR_COLOR,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.4
+        });
+        crosshairGroup.add(new THREE.Mesh(innerRingGeo, innerRingMat));
 
         crosshairGroup.visible = false;
         scene.add(crosshairGroup);
 
         // ============================================
-        // AUDIO SYSTEM (Web Audio API)
+        // AUDIO SYSTEM
         // ============================================
         let audioContext = null;
 
@@ -292,113 +734,310 @@
             }
         }
 
+        function playShootSound() {
+            if (!audioContext) return;
+            try {
+                const now = audioContext.currentTime;
+
+                // Gunshot noise burst
+                const bufferSize = audioContext.sampleRate * 0.12;
+                const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+                }
+                const noise = audioContext.createBufferSource();
+                noise.buffer = noiseBuffer;
+
+                const noiseGain = audioContext.createGain();
+                noiseGain.gain.setValueAtTime(0.4, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                const noiseFilter = audioContext.createBiquadFilter();
+                noiseFilter.type = 'lowpass';
+                noiseFilter.frequency.setValueAtTime(4000, now);
+                noiseFilter.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+
+                noise.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(audioContext.destination);
+                noise.start(now);
+
+                // Thump
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+                const oscGain = audioContext.createGain();
+                oscGain.gain.setValueAtTime(0.5, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(oscGain);
+                oscGain.connect(audioContext.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } catch (e) { }
+        }
+
         function playHitSound() {
             if (!audioContext) return;
             try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                const now = audioContext.currentTime;
+                // Rising positive chime
+                const osc1 = audioContext.createOscillator();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(600, now);
+                osc1.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                const g1 = audioContext.createGain();
+                g1.gain.setValueAtTime(0.25, now);
+                g1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc1.connect(g1);
+                g1.connect(audioContext.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.2);
 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.15);
-            } catch (e) {
-                console.warn('Audio error:', e);
-            }
+                // Secondary harmonic
+                const osc2 = audioContext.createOscillator();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(900, now + 0.05);
+                osc2.frequency.exponentialRampToValueAtTime(1600, now + 0.15);
+                const g2 = audioContext.createGain();
+                g2.gain.setValueAtTime(0.15, now + 0.05);
+                g2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc2.connect(g2);
+                g2.connect(audioContext.destination);
+                osc2.start(now + 0.05);
+                osc2.stop(now + 0.25);
+            } catch (e) { }
         }
 
         function playMissSound() {
             if (!audioContext) return;
             try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.2);
-
-                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2);
-            } catch (e) {
-                console.warn('Audio error:', e);
-            }
+                const now = audioContext.currentTime;
+                const osc = audioContext.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+                const g = audioContext.createGain();
+                g.gain.setValueAtTime(0.15, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(g);
+                g.connect(audioContext.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch (e) { }
         }
 
-        function playShootSound() {
+        function playRecordSound() {
             if (!audioContext) return;
             try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
-                const noiseData = noiseBuffer.getChannelData(0);
+                const now = audioContext.currentTime;
+                // Fanfare: ascending arpeggio
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+                notes.forEach((freq, i) => {
+                    const osc = audioContext.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                    const g = audioContext.createGain();
+                    g.gain.setValueAtTime(0, now + i * 0.12);
+                    g.gain.linearRampToValueAtTime(0.3, now + i * 0.12 + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+                    osc.connect(g);
+                    g.connect(audioContext.destination);
+                    osc.start(now + i * 0.12);
+                    osc.stop(now + i * 0.12 + 0.4);
+                });
 
-                for (let i = 0; i < noiseData.length; i++) {
-                    noiseData[i] = Math.random() * 2 - 1;
+                // Shimmer
+                const shimOsc = audioContext.createOscillator();
+                shimOsc.type = 'triangle';
+                shimOsc.frequency.setValueAtTime(2000, now + 0.4);
+                shimOsc.frequency.exponentialRampToValueAtTime(4000, now + 0.8);
+                const sg = audioContext.createGain();
+                sg.gain.setValueAtTime(0.1, now + 0.4);
+                sg.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                shimOsc.connect(sg);
+                sg.connect(audioContext.destination);
+                shimOsc.start(now + 0.4);
+                shimOsc.stop(now + 1.0);
+            } catch (e) { }
+        }
+
+        function playComboSound(comboLevel) {
+            if (!audioContext) return;
+            try {
+                const now = audioContext.currentTime;
+                const baseFreq = 400 + comboLevel * 80; // Pitch rises with combo
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.08);
+                const g = audioContext.createGain();
+                g.gain.setValueAtTime(0.2, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(g);
+                g.connect(audioContext.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } catch (e) { }
+        }
+
+        // ============================================
+        // SCORE & COMBO SYSTEM
+        // ============================================
+        function updateScore(points) {
+            const comboMultiplier = Math.max(1, combo);
+            const totalPoints = points * comboMultiplier;
+            score += totalPoints;
+
+            scoreDisplay.textContent = score.toString().padStart(4, '0');
+
+            // Animate score display
+            scoreDisplay.style.transform = 'scale(1.3)';
+            setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; }, 150);
+
+            // Check high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('arShooterHighScore', highScore.toString());
+                highScoreDisplay.textContent = highScore.toString().padStart(4, '0');
+
+                if (!newRecordShown) {
+                    newRecordShown = true;
+                    showNewRecord();
                 }
-
-                const noiseSource = audioContext.createBufferSource();
-                noiseSource.buffer = noiseBuffer;
-
-                const noiseGain = audioContext.createGain();
-                noiseSource.connect(noiseGain);
-                noiseGain.connect(audioContext.destination);
-
-                noiseGain.gain.setValueAtTime(0.3, audioContext.currentTime);
-                noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
-                noiseSource.start();
-            } catch (e) {
-                console.warn('Audio error:', e);
             }
+
+            return totalPoints;
+        }
+        function incrementCombo() {
+            combo++;
+            comboDisplay.textContent = 'x' + combo;
+            comboBarPercent = 100;
+            comboBar.style.width = '100%';
+
+            if (combo > 1) {
+                playComboSound(combo);
+            }
+
+            // Reset combo timer
+            clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                combo = 0;
+                comboDisplay.textContent = 'x1';
+                comboBarPercent = 0;
+                comboBar.style.width = '0%';
+            }, CONFIG.COMBO_TIMEOUT);
+        }
+
+        function resetCombo() {
+            combo = 0;
+            comboDisplay.textContent = 'x1';
+            comboBarPercent = 0;
+            comboBar.style.width = '0%';
+            clearTimeout(comboTimer);
+        }
+
+        // Combo bar drain animation
+        let lastComboUpdate = Date.now();
+        function updateComboBar() {
+            if (combo > 0 && comboTimer) {
+                const elapsed = Date.now() - lastComboUpdate;
+                const drainRate = 100 / (CONFIG.COMBO_TIMEOUT / 16);
+                comboBarPercent = Math.max(0, comboBarPercent - drainRate);
+                comboBar.style.width = comboBarPercent + '%';
+            }
+            lastComboUpdate = Date.now();
+        }
+
+        function showNewRecord() {
+            recordScoreText.textContent = 'Score: ' + score;
+            recordBanner.classList.add('show');
+            playRecordSound();
+
+            // Gold flash
+            screenFlash.style.background = 'radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%)';
+            screenFlash.style.opacity = '1';
+            setTimeout(() => { screenFlash.style.opacity = '0'; }, 400);
+
+            setTimeout(() => { recordBanner.classList.remove('show'); }, 2500);
+        }
+
+        function flashScreen(color) {
+            screenFlash.style.background = color;
+            screenFlash.style.opacity = '1';
+            setTimeout(() => { screenFlash.style.opacity = '0'; }, 80);
+        }
+
+        function showScorePopup(points, worldPos) {
+            const vector = worldPos.clone().project(camera3d);
+            const x = (vector.x + 1) / 2 * window.innerWidth;
+            const y = -(vector.y - 1) / 2 * window.innerHeight;
+
+            const div = document.createElement('div');
+            div.className = 'score-popup';
+            div.textContent = '+' + points;
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+
+            if (combo > 2) {
+                div.style.color = '#ffd700';
+                div.style.textShadow = '0 0 20px rgba(255,215,0,0.7)';
+                div.style.fontSize = '2rem';
+            } else {
+                div.style.color = '#4ade80';
+                div.style.textShadow = '0 0 15px rgba(74,222,128,0.6)';
+            }
+
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
         }
 
         // ============================================
         // DISC MANAGEMENT
         // ============================================
         function createDisc() {
-            const disc = new THREE.Mesh(discGeometry, discMaterial.clone());
+            const colors = [0xff2d55, 0xff6b35, 0xe94560, 0xff3366, 0xd63384];
+            const color = colors[Math.floor(Math.random() * colors.length)];
 
-            // Random edge spawn position
+            const mat = new THREE.MeshPhongMaterial({
+                color: color,
+                emissive: new THREE.Color(color).multiplyScalar(0.2),
+                shininess: 120,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            const disc = new THREE.Mesh(discGeometry, mat);
+
+            // Outer glow ring
+            const glowGeo = new THREE.RingGeometry(CONFIG.DISC_SIZE * 1.2, CONFIG.DISC_SIZE * 1.4, 32);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: 0x00e5ff,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            disc.add(glow);
+
             const edge = Math.floor(Math.random() * 4);
             const aspect = window.innerWidth / window.innerHeight;
 
             switch (edge) {
-                case 0: // Top
-                    disc.position.set((Math.random() - 0.5) * 2 * aspect, 1.2, 0);
-                    break;
-                case 1: // Bottom
-                    disc.position.set((Math.random() - 0.5) * 2 * aspect, -1.2, 0);
-                    break;
-                case 2: // Left
-                    disc.position.set(-aspect - 0.2, (Math.random() - 0.5) * 2, 0);
-                    break;
-                case 3: // Right
-                    disc.position.set(aspect + 0.2, (Math.random() - 0.5) * 2, 0);
-                    break;
+                case 0: disc.position.set((Math.random() - 0.5) * 2 * aspect, 1.2, 0); break;
+                case 1: disc.position.set((Math.random() - 0.5) * 2 * aspect, -1.2, 0); break;
+                case 2: disc.position.set(-aspect - 0.2, (Math.random() - 0.5) * 2, 0); break;
+                case 3: disc.position.set(aspect + 0.2, (Math.random() - 0.5) * 2, 0); break;
             }
 
-            // Target center with slight randomness
             disc.userData.target = new THREE.Vector3(
                 (Math.random() - 0.5) * 0.3,
                 (Math.random() - 0.5) * 0.3,
                 0
             );
 
-            // Random rotation
             disc.rotation.x = Math.random() * Math.PI;
             disc.rotation.y = Math.random() * Math.PI;
             disc.userData.rotationSpeed = {
@@ -406,9 +1045,6 @@
                 y: (Math.random() - 0.5) * 0.1,
                 z: (Math.random() - 0.5) * 0.1
             };
-
-            // Random color variation
-            disc.material.color.setHSL(Math.random() * 0.1 + 0.95, 0.8, 0.5);
 
             scene.add(disc);
             discs.push(disc);
@@ -418,26 +1054,26 @@
         function updateDiscs() {
             for (let i = discs.length - 1; i >= 0; i--) {
                 const disc = discs[i];
-
-                // Move toward target
                 const direction = new THREE.Vector3()
                     .subVectors(disc.userData.target, disc.position)
                     .normalize();
                 disc.position.add(direction.multiplyScalar(CONFIG.DISC_SPEED));
 
-                // Rotate
                 disc.rotation.x += disc.userData.rotationSpeed.x;
                 disc.rotation.y += disc.userData.rotationSpeed.y;
                 disc.rotation.z += disc.userData.rotationSpeed.z;
 
-                // Check if disc reached center (player loses if too close)
+                // When disc reaches target, give it a new random target to float around
                 if (disc.position.distanceTo(disc.userData.target) < 0.05) {
-                    scene.remove(disc);
-                    discs.splice(i, 1);
+                    const aspect = window.innerWidth / window.innerHeight;
+                    disc.userData.target = new THREE.Vector3(
+                        (Math.random() - 0.5) * 1.6 * aspect,
+                        (Math.random() - 0.5) * 1.6,
+                        0
+                    );
                 }
             }
 
-            // Maintain disc count
             while (discs.length < CONFIG.DISC_COUNT) {
                 createDisc();
             }
@@ -452,12 +1088,12 @@
             canvas.height = 128;
             const ctx = canvas.getContext('2d');
 
-            ctx.font = 'bold 64px Arial';
-            ctx.fillStyle = color === CONFIG.HIT_COLOR ? '#00ff00' : '#ff0000';
+            ctx.font = 'bold 64px Orbitron, monospace';
+            ctx.fillStyle = color === CONFIG.HIT_COLOR ? '#4ade80' : '#ff2d55';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = color === CONFIG.HIT_COLOR ? '#00ff00' : '#ff0000';
-            ctx.shadowBlur = 20;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = 25;
             ctx.fillText(text, 128, 64);
 
             const texture = new THREE.CanvasTexture(canvas);
@@ -496,20 +1132,21 @@
         // PARTICLE EFFECTS
         // ============================================
         function createShatterEffect(position, color) {
-            const particleCount = 15;
+            const particleCount = 20;
             for (let i = 0; i < particleCount; i++) {
-                const geometry = new THREE.BoxGeometry(0.02, 0.02, 0.02);
+                const size = 0.01 + Math.random() * 0.02;
+                const geometry = new THREE.BoxGeometry(size, size, size);
                 const material = new THREE.MeshBasicMaterial({
-                    color: color,
+                    color: i % 3 === 0 ? 0x00e5ff : color,
                     transparent: true,
                     opacity: 1
                 });
                 const particle = new THREE.Mesh(geometry, material);
                 particle.position.copy(position);
                 particle.userData.velocity = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1
+                    (Math.random() - 0.5) * 0.15,
+                    (Math.random() - 0.5) * 0.15,
+                    (Math.random() - 0.5) * 0.08
                 );
                 particle.userData.life = 1;
                 scene.add(particle);
@@ -521,11 +1158,12 @@
             for (let i = particles.length - 1; i >= 0; i--) {
                 const particle = particles[i];
                 particle.position.add(particle.userData.velocity);
-                particle.userData.velocity.y -= 0.003; // Gravity
-                particle.userData.life -= 0.03;
+                particle.userData.velocity.y -= 0.003;
+                particle.userData.life -= 0.025;
                 particle.material.opacity = particle.userData.life;
-                particle.rotation.x += 0.1;
+                particle.rotation.x += 0.15;
                 particle.rotation.y += 0.1;
+                particle.scale.multiplyScalar(0.98);
 
                 if (particle.userData.life <= 0) {
                     scene.remove(particle);
@@ -537,42 +1175,52 @@
         }
 
         // ============================================
-        // GESTURE DETECTION
+        // GESTURE DETECTION - SHAKE TO FIRE
         // ============================================
-        function detectPistolGesture(landmarks) {
-            if (!landmarks || landmarks.length < 21) return { isPistol: false, isTrigger: false };
+        const handHistory = []; // stores recent wrist positions
+        const HISTORY_SIZE = 5;
+        let lastFireTime = 0;
+        const FIRE_COOLDOWN = 400; // ms between shots
 
-            // Finger tip and base indices
+        function detectGesture(landmarks) {
+            if (!landmarks || landmarks.length < 21) return { handDetected: false, isTrigger: false };
+
             const INDEX_TIP = 8;
-            const INDEX_MCP = 5;
-            const MIDDLE_TIP = 12;
-            const MIDDLE_MCP = 9;
-            const RING_TIP = 16;
-            const RING_MCP = 13;
-            const PINKY_TIP = 20;
-            const PINKY_MCP = 17;
-            const THUMB_TIP = 4;
-            const THUMB_IP = 3;
             const WRIST = 0;
 
-            // Check if index finger is extended
-            const indexExtended = landmarks[INDEX_TIP].y < landmarks[INDEX_MCP].y - 0.05;
+            // Aim with index finger tip
+            const aimX = 1 - landmarks[INDEX_TIP].x;
+            const aimY = landmarks[INDEX_TIP].y;
 
-            // Check if other fingers are curled
-            const middleCurled = landmarks[MIDDLE_TIP].y > landmarks[MIDDLE_MCP].y - 0.03;
-            const ringCurled = landmarks[RING_TIP].y > landmarks[RING_MCP].y - 0.03;
-            const pinkyCurled = landmarks[PINKY_TIP].y > landmarks[PINKY_MCP].y - 0.03;
+            // Track wrist position for shake detection
+            const now = Date.now();
+            const wristPos = { x: landmarks[WRIST].x, y: landmarks[WRIST].y, t: now };
+            handHistory.push(wristPos);
+            if (handHistory.length > HISTORY_SIZE) handHistory.shift();
 
-            // Check if thumb is up (trigger pulled)
-            const thumbUp = landmarks[THUMB_TIP].y < landmarks[THUMB_IP].y - 0.02;
+            // Calculate hand velocity (movement speed)
+            let isTrigger = false;
+            if (handHistory.length >= 3) {
+                // Compare current position to position 2-3 frames ago
+                const old = handHistory[0];
+                const dx = wristPos.x - old.x;
+                const dy = wristPos.y - old.y;
+                const dt = Math.max(1, wristPos.t - old.t); // ms
+                const speed = Math.hypot(dx, dy) / dt * 1000; // normalized per second
 
-            const isPistol = indexExtended && middleCurled && ringCurled && pinkyCurled;
+                // Fire if hand moved fast enough (shake/jerk) and cooldown passed
+                if (speed > 1.5 && (now - lastFireTime) > FIRE_COOLDOWN) {
+                    isTrigger = true;
+                    lastFireTime = now;
+                    handHistory.length = 0; // reset history after fire to avoid double-fire
+                }
+            }
 
             return {
-                isPistol: isPistol,
-                isTrigger: thumbUp,
-                aimX: 1 - landmarks[INDEX_TIP].x, // Mirror for display
-                aimY: landmarks[INDEX_TIP].y
+                handDetected: true,
+                isTrigger: isTrigger,
+                aimX: aimX,
+                aimY: aimY
             };
         }
 
@@ -599,15 +1247,14 @@
             }
 
             if (closestDisc) {
-                // Magnetic attraction
                 const strength = 1 - (closestDist / CONFIG.AIM_ASSIST_RADIUS);
-                worldX = worldX + (closestDisc.position.x - worldX) * strength * 0.7;
-                worldY = worldY + (closestDisc.position.y - worldY) * strength * 0.7;
-
-                // Change crosshair color to indicate lock
+                worldX += (closestDisc.position.x - worldX) * strength * 0.7;
+                worldY += (closestDisc.position.y - worldY) * strength * 0.7;
                 crosshairMaterial.color.setHex(0xff6600);
+                innerRingMat.color.setHex(0xff6600);
             } else {
                 crosshairMaterial.color.setHex(CONFIG.CROSSHAIR_COLOR);
+                innerRingMat.color.setHex(CONFIG.CROSSHAIR_COLOR);
             }
 
             return { x: worldX, y: worldY, lockedDisc: closestDisc };
@@ -618,12 +1265,11 @@
         // ============================================
         function shoot(aimX, aimY) {
             playShootSound();
+            flashScreen('rgba(255,45,85,0.15)');
 
             const { x: worldX, y: worldY, lockedDisc } = applyAimAssist(aimX, aimY);
-
             let hit = false;
 
-            // Check hit on all discs
             for (let i = discs.length - 1; i >= 0; i--) {
                 const disc = discs[i];
                 const dist = Math.sqrt(
@@ -632,14 +1278,16 @@
                 );
 
                 if (dist < CONFIG.DISC_SIZE * 1.5) {
-                    // Hit!
                     hit = true;
-                    score += 100;
-                    scoreElement.textContent = score;
+                    incrementCombo();
+                    const pts = updateScore(CONFIG.SCORE_PER_HIT);
 
                     createTextEffect('HIT!', disc.position.clone(), CONFIG.HIT_COLOR);
                     createShatterEffect(disc.position.clone(), disc.material.color.getHex());
+                    showScorePopup(pts, disc.position.clone());
                     playHitSound();
+
+                    flashScreen('rgba(74,222,128,0.12)');
 
                     scene.remove(disc);
                     discs.splice(i, 1);
@@ -648,6 +1296,7 @@
             }
 
             if (!hit) {
+                resetCombo();
                 createTextEffect('MISS', new THREE.Vector3(worldX, worldY, 0), CONFIG.MISS_COLOR);
                 playMissSound();
             }
@@ -659,9 +1308,8 @@
         async function initMediaPipe() {
             try {
                 progressBar.style.width = '20%';
-                loaderText.textContent = 'Initializing camera...';
+                loaderText.textContent = 'Requesting camera access...';
 
-                // Get camera stream
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { width: 1280, height: 720, facingMode: 'user' }
                 });
@@ -670,9 +1318,8 @@
                 await cameraFeed.play();
 
                 progressBar.style.width = '40%';
-                loaderText.textContent = 'Loading hand tracking model...';
+                loaderText.textContent = 'Loading AI hand tracking model...';
 
-                // Initialize MediaPipe Hands with version-locked resources
                 const hands = new Hands({
                     locateFile: (file) => {
                         return `https://unpkg.com/@mediapipe/hands@0.4.1646424915/${file}`;
@@ -687,26 +1334,24 @@
                 });
 
                 progressBar.style.width = '60%';
-                loaderText.textContent = 'Downloading model weights...';
+                loaderText.textContent = 'Downloading neural network weights...';
 
                 hands.onResults((results) => {
-                    // Update Landmarks Canvas size if needed
                     if (landmarkCanvas.width !== window.innerWidth || landmarkCanvas.height !== window.innerHeight) {
                         landmarkCanvas.width = window.innerWidth;
                         landmarkCanvas.height = window.innerHeight;
                     }
 
-                    // Draw Landmarks
                     landmarkCtx.save();
                     landmarkCtx.clearRect(0, 0, landmarkCanvas.width, landmarkCanvas.height);
                     if (results.multiHandLandmarks) {
-                        landmarkCtx.shadowBlur = 15;
-                        landmarkCtx.shadowColor = '#00FF00';
+                        landmarkCtx.shadowBlur = 20;
+                        landmarkCtx.shadowColor = '#00e5ff';
                         for (const landmarks of results.multiHandLandmarks) {
                             drawConnectors(landmarkCtx, landmarks, HAND_CONNECTIONS,
-                                { color: '#00FF00', lineWidth: 4 });
+                                { color: '#00e5ff', lineWidth: 3 });
                             drawLandmarks(landmarkCtx, landmarks,
-                                { color: '#00FFFF', lineWidth: 1, radius: 2 });
+                                { color: '#ff2d55', lineWidth: 1, radius: 3 });
                         }
                     }
                     landmarkCtx.restore();
@@ -722,36 +1367,30 @@
                     }
                 });
 
-                // Initialize model by sending a frame
                 progressBar.style.width = '80%';
-                loaderText.textContent = 'Warming up model...';
+                loaderText.textContent = 'Warming up neural network...';
 
                 await hands.send({ image: cameraFeed });
 
                 progressBar.style.width = '100%';
-                loaderText.textContent = 'Ready!';
+                loaderText.textContent = 'Locked and loaded!';
 
-                // Start detection loop
                 setInterval(async () => {
-                    try {
-                        await hands.send({ image: cameraFeed });
-                    } catch (e) {
-                        console.warn('Hand detection error:', e);
-                    }
+                    try { await hands.send({ image: cameraFeed }); }
+                    catch (e) { console.warn('Hand detection error:', e); }
                 }, CONFIG.DETECTION_INTERVAL);
 
                 handsReady = true;
 
-                // Hide loading overlay
                 setTimeout(() => {
                     loadingOverlay.classList.add('hidden');
                     initAudio();
-                }, 500);
+                }, 600);
 
             } catch (error) {
                 console.error('MediaPipe initialization error:', error);
-                loaderText.textContent = 'Error: ' + error.message;
-                loaderText.style.color = '#ff0000';
+                loaderText.textContent = '⚠ Error: ' + error.message;
+                loaderText.style.color = '#ff2d55';
             }
         }
 
@@ -763,31 +1402,34 @@
                 laserLine.visible = false;
                 crosshairGroup.visible = false;
                 gestureStatus.textContent = 'No hand detected';
+                statusDot.className = 'status-dot inactive';
                 isPistolGesture = false;
+                wasTriggerPulled = false;
                 return;
             }
 
             try {
-                const gesture = detectPistolGesture(lastHandData);
+                const gesture = detectGesture(lastHandData);
 
-                if (gesture.isPistol) {
+                if (gesture.handDetected) {
                     isPistolGesture = true;
-                    gestureStatus.textContent = gesture.isTrigger ? '🔫 FIRING!' : '🔫 Aiming...';
+                    statusDot.className = 'status-dot active';
 
-                    // Update aim position
+                    // Always update aim position from index finger
                     aimPosition.x = gesture.aimX;
                     aimPosition.y = gesture.aimY;
 
-                    // Apply aim assist
+                    // Apply magnetic aim assist
                     const assisted = applyAimAssist(aimPosition.x, aimPosition.y);
                     assistedAimPosition.x = assisted.x;
                     assistedAimPosition.y = assisted.y;
 
-                    // Update crosshair
+                    // Always show crosshair when hand is visible
                     crosshairGroup.position.set(assistedAimPosition.x, assistedAimPosition.y, 0.1);
                     crosshairGroup.visible = true;
+                    crosshairGroup.rotation.z += 0.02;
 
-                    // Update laser
+                    // Always show laser
                     const aspect = window.innerWidth / window.innerHeight;
                     const handX = (aimPosition.x - 0.5) * 2 * aspect;
                     const handY = -(aimPosition.y - 0.5) * 2;
@@ -799,18 +1441,36 @@
                     laserGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                     laserLine.visible = true;
 
-                    // Check for trigger pull (rising edge)
-                    if (gesture.isTrigger && !wasTriggerPulled) {
-                        shoot(aimPosition.x, aimPosition.y);
+                    // AUTO-KILL: if crosshair is on a target, shoot automatically
+                    const now = Date.now();
+                    if ((now - lastAutoFireTime) > AUTO_FIRE_COOLDOWN) {
+                        for (let i = discs.length - 1; i >= 0; i--) {
+                            const disc = discs[i];
+                            const dist = Math.sqrt(
+                                Math.pow(disc.position.x - assistedAimPosition.x, 2) +
+                                Math.pow(disc.position.y - assistedAimPosition.y, 2)
+                            );
+                            if (dist < CONFIG.DISC_SIZE * 1.8) {
+                                // HIT!
+                                lastAutoFireTime = now;
+                                playShootSound();
+                                flashScreen('rgba(74,222,128,0.12)');
+                                incrementCombo();
+                                const pts = updateScore(CONFIG.SCORE_PER_HIT);
+                                createTextEffect('HIT!', disc.position.clone(), CONFIG.HIT_COLOR);
+                                createShatterEffect(disc.position.clone(), disc.material.color.getHex());
+                                showScorePopup(pts, disc.position.clone());
+                                playHitSound();
+                                scene.remove(disc);
+                                discs.splice(i, 1);
+                                gestureStatus.textContent = '🔫 BANG!';
+                                break;
+                            }
+                        }
+                        if (gestureStatus.textContent !== '🔫 BANG!') {
+                            gestureStatus.textContent = '🎯 Point at targets!';
+                        }
                     }
-                    wasTriggerPulled = gesture.isTrigger;
-
-                } else {
-                    isPistolGesture = false;
-                    laserLine.visible = false;
-                    crosshairGroup.visible = false;
-                    gestureStatus.textContent = 'Make pistol gesture 👆';
-                    wasTriggerPulled = false;
                 }
             } catch (e) {
                 console.warn('Aiming update error:', e);
@@ -825,33 +1485,53 @@
                 updateAiming();
                 updateTextEffects();
                 updateParticles();
+                updateComboBar();
             }
 
-            renderer.render(scene, camera);
+            renderer.render(scene, camera3d);
         }
 
         // ============================================
         // WINDOW RESIZE
         // ============================================
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            camera3d.aspect = window.innerWidth / window.innerHeight;
+            camera3d.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
         // ============================================
         // INITIALIZE
         // ============================================
-        // Initialize discs
-        for (let i = 0; i < CONFIG.DISC_COUNT; i++) {
-            createDisc();
+        let playerName = 'Player';
+
+        function startGame() {
+            const input = document.getElementById('player-name-input');
+            playerName = input.value.trim() || 'Player';
+
+            // Personalize UI
+            document.getElementById('score-label').textContent = playerName + "'s Score";
+            document.getElementById('loading-player-name').textContent = 'Get Ready, ' + playerName + '!';
+
+            // Switch from welcome to loading phase
+            document.getElementById('welcome-phase').hidden = true;
+            document.getElementById('loading-phase').hidden = false;
+
+            // Create discs and start
+            for (let i = 0; i < CONFIG.DISC_COUNT; i++) {
+                createDisc();
+            }
+            animate();
+            initMediaPipe();
         }
 
-        // Start animation loop
-        animate();
+        // Allow Enter key to start
+        document.getElementById('player-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') startGame();
+        });
 
-        // Initialize MediaPipe
-        initMediaPipe();
+        // Auto-focus the input
+        document.getElementById('player-name-input').focus();
     </script>
 </body>
 
